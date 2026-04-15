@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rate & Review</title>
+      <link rel="stylesheet" href="style.css">
+
+  
+</head>
+<body class="review-page">
+  <div class="container">
+    <div class="top-bar">
+      <a href="login.html">
+      <img src="images/logout.png" alt="Logout" alt="Logout" style="width:40px; height:40px; object-fit:contain;">
+	  </a>
+      </a>
+    </div>
+
+    <div class="logo-container">
+      <img src="images/thamen.bmp" alt="Thameen Logo" class="logo">
+    </div>
+
+    <h1 class="page-title">Rate & Review</h1>
+    <div class="divider"></div>
+
+    <div class="review-box">
+      <div class="status-box">
+        <strong>Request Status:</strong> Delivered
+      </div>
+
+      <label class="label">Select Rating</label>
+      <div class="stars-container">
+        <span class="star" onclick="setRating(1)">★</span>
+        <span class="star" onclick="setRating(2)">★</span>
+        <span class="star" onclick="setRating(3)">★</span>
+        <span class="star" onclick="setRating(4)">★</span>
+        <span class="star" onclick="setRating(5)">★</span>
+      </div>
+      <span class="error-text" id="ratingError"></span>
+
+      <label class="label" for="reviewText">Write Your Review</label>
+      <textarea id="reviewText" class="textarea-field" placeholder="Write your review here..."></textarea>
+      <span class="error-text" id="reviewError"></span>
+
+      <button class="btn" onclick="submitReview()">Submit</button>
+
+      <div class="success-box" id="successBox">
+        Your rating and review have been submitted successfully.
+      </div>
+    </div>
+  </div>
+
+ <script>
+let selectedRating = 0;
+
+function setRating(value) {
+    selectedRating = value;
+
+    const stars = document.querySelectorAll(".star");
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add("active");
+        } else {
+            star.classList.remove("active");
+        }
+    });
+}
+
+function submitReview() {
+    const reviewText = document.getElementById("reviewText").value.trim();
+    const ratingError = document.getElementById("ratingError");
+    const reviewError = document.getElementById("reviewError");
+    const successBox = document.getElementById("successBox");
+
+    ratingError.textContent = "";
+    reviewError.textContent = "";
+    successBox.style.display = "none";
+
+    let valid = true;
+
+    if (selectedRating === 0) {
+        ratingError.textContent = "Please select a rating from 1 to 5 stars.";
+        valid = false;
+    }
+
+    if (reviewText === "") {
+        reviewError.textContent = "Review field cannot be empty.";
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    successBox.style.display = "block";
+
+    document.getElementById("reviewText").value = "";
+    selectedRating = 0;
+
+    document.querySelectorAll(".star").forEach(star => {
+        star.classList.remove("active");
+    });
+
+    setTimeout(function () {
+        window.location.href = "MyRequests.html";
+    }, 500);
+}
+</script>
+</body>
+</html>

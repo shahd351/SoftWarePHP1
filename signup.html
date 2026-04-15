@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thamean - Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
+        </div>
+        
+        <h2 class="login-title">Sign Up!</h2>
+        
+        <form class="login-form" action="loginAsUser.html" method="get" id="signupForm">
+            <div class="input-group">
+                <input type="text" placeholder="FullName" id="fullName" class="input-field" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" placeholder="PhoneNumber" id="phoneNumber" class="input-field" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="date" placeholder="Date of Birth" id="dob" class="input-field" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="password" placeholder="Password" id="password" class="input-field" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="password" placeholder="ConfirmPassword" id="confirmPassword" class="input-field" required>
+            </div>
+            
+            <button type="submit" class="login-btn">SIGN UP</button>
+        </form>
+        
+        <div class="signup-link">
+            <a href="loginAsUser.html">Already Have a Account? Sign In</a>
+        </div>
+    </div>
+	
+	
+	 <script>
+        document.getElementById('signupForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            // حساب العمر
+            let dob = document.getElementById('dob').value;
+            let birthDate = new Date(dob);
+            let today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            let monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            // التحقق من العمر
+            if (age < 18) {
+                alert("You are under 18 years old, you cannot register.");
+                return false;
+            }
+            
+            // التحقق من تطابق كلمة المرور
+            let password = document.getElementById('password').value;
+            let confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert("The password does not match.");
+                return false;
+            }
+            
+            // التحقق من طول كلمة المرور
+            if (password.length < 8) {
+                alert("The password must be at least 8 characters long.");
+                return false;
+            }
+            
+            // اذا كل شي صح انتقل لصفحه الدخول
+            window.location.href = "loginAsUser.html";
+        };
+    </script>
+	
+	
+</body>
+</html>
