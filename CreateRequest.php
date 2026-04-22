@@ -33,7 +33,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
             die("User not logged in");
     }   
+            // البحث عن أول سائق متاح حسب الترتيب
+    $driverID = null;
+
+    $driverQuery = "SELECT DriverID FROM driver WHERE Status = 'Available' ORDER BY DriverID ASC LIMIT 1";
+    $driverResult = $conn->query($driverQuery);
+
+    if ($driverResult && $driverResult->num_rows > 0) {
+        $driverRow = $driverResult->fetch_assoc();
+        $driverID = $driverRow['DriverID'];
+
+        // بما أنه تم ربط الطلب بسائق، تصير حالة الطلب In Transit
+        $status = "In Transit";
+
+        // تحديث حالة السائق إلى Busy
+        $updateDriver = "UPDATE driver SET Status = 'Busy' WHERE DriverID = $driverID";
+        $conn->query($updateDriver);
+    } else {
+        // إذا ما فيه أي سائق متاح
         $driverID = null;
+        $status = "Pending";
+
+        echo "<script>alert('Note: All drivers are currently busy. Your request will remain pending until a driver becomes available.');</script>";
+    }       
 
         $stmt = $conn->prepare("
             INSERT INTO request
@@ -58,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         );
 
         if ($stmt->execute()) {
-            echo "<script>alert('✅ Request saved in database successfully'); window.location.href='CreateRequest.php';</script>";
+            header("Location: MyRequests.php");
         } else {
             echo "<script>alert('❌ Database Error: " . addslashes($stmt->error) . "');</script>";
         }

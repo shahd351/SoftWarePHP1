@@ -1,3 +1,22 @@
+<?php
+session_start();
+include 'db_connection.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.html");
+    exit();
+}
+
+$userID = $_SESSION['user_id'];
+
+$sql = "SELECT * FROM request WHERE UserID = ? ORDER BY CreationDate DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userID);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,66 +41,81 @@
             <div class="divider"></div>
 
             <div class="requests-list">
-    
-    <a href="RequestDetails.html" class="request-link-wrapper">
-        <div class="price-box request-card">
-            <div class="request-card-content">
-                <div class="request-details-text">
-                    <span class="request-id">Request ID: 1432</span>
-                    <span class="request-status transit">In Transit</span>
-                </div>
-                <div class="request-details-image">
-                    <img src="images/jewelry.png" alt="Jewelry">
-                </div>
-            </div>
-            <div class="request-arrow"></div>
-        </div>
-    </a>
 
-    <a href="RequestDetailsAfter.html" class="request-link-wrapper">
-        <div class="price-box request-card">
-            <div class="request-card-content">
-                <div class="request-details-text">
-                    <span class="request-id">Request ID: 5679</span>
-                    <span class="request-status delivered">Delivered</span>
+<?php if ($result->num_rows > 0) { ?>
+    
+    <?php while ($row = $result->fetch_assoc()) { ?>
+
+        <?php
+        if ($row['Status'] === 'Delivered') {
+            $displayStatus = 'Delivered';
+            $statusClass = 'delivered';
+            $detailsPage = 'RequestDetailsAfter.html';
+        } elseif (is_null($row['DriverID'])) {
+            $displayStatus = 'Pending';
+            $statusClass = 'pending';
+            $detailsPage = 'RequestDetails.html';
+        } else {
+            $displayStatus = 'In Transit';
+            $statusClass = 'transit';
+            $detailsPage = 'RequestDetails.html';
+        }
+
+        if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
+            $imagePath = 'images/jewelry.png';
+            $imageAlt = 'Jewelry';
+        } elseif ($row['ItemType'] === 'Cash' || $row['ItemType'] === 'cash') {
+            $imagePath = 'images/money.png';
+            $imageAlt = 'Money';
+        } else {
+            $imagePath = 'images/electronics.png';
+            $imageAlt = 'Electronics';
+        }
+                $detailsPage = 'RequestDetails.php?requestID=' . $row['RequestID'];
+
+        ?>
+
+        <a href="<?php echo $detailsPage; ?>" class="request-link-wrapper">
+            <div class="price-box request-card">
+                <div class="request-card-content">
+                    <div class="request-details-text">
+                        <span class="request-id">Request ID: <?php echo $row['RequestID']; ?></span>
+                        <span class="request-status <?php echo $statusClass; ?>">
+                            <?php echo $displayStatus; ?>
+                        </span>
+                    </div>
+                    <div class="request-details-image">
+                        <img src="<?php echo $imagePath; ?>" alt="<?php echo $imageAlt; ?>">
+                    </div>
                 </div>
-                <div class="request-details-image">
-                    <img src="images/money.png" alt="Money">
-                </div>
+                <div class="request-arrow"></div>
             </div>
-            <div class="request-arrow"></div>
-        </div>
-    </a>
-	
-	<a href="RequestDetails.html" class="request-link-wrapper">
-        <div class="price-box request-card">
-            <div class="request-card-content">
-                <div class="request-details-text">
-                    <span class="request-id">Request ID: 1085</span>
-                    <span class="request-status pending">Pending</span>
-                </div>
-                <div class="request-details-image">
-                    <img src="images/electronics.png" alt="Money">
-                </div>
+        </a>
+
+    <?php } ?>
+
+<?php } else { ?>
+
+    <div class="price-box request-card">
+        <div class="request-card-content">
+            <div class="request-details-text">
+                <span style="font-size:18px; font-weight:bold; color:white;">You don’t have any requests yet</span>
+                <a href="CreateRequest.php" style="font-size:18px; font-weight:bold; color:white;">
+                 Create your first request
+                </a>        
             </div>
-            <div class="request-arrow"></div>
         </div>
-    </a>
+    </div>
+
+<?php } ?>
 
 </div>
         </div>
     </div>
 
-    <script>
-        function goToDetails(status) {
-            if (status === 'In Transit') {
-                window.location.href = 'RequestDetails.html';
-            } else if (status === 'Delivered') {
-                window.location.href = 'RequestDetailsAfter.html';
-            } else {
-                window.location.href = 'RequestDetails.html?status=canceled';
-            }
-        }
-    </script>
+    <?php
+$stmt->close();
+$conn->close();
+?>
 </body>
 </html>
