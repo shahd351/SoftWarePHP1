@@ -26,10 +26,6 @@ $row = $result->fetch_assoc();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteRequest'])) {
 
-    if ($row['Status'] === 'Delivered') {
-        echo "<script>alert('This request has already been delivered, so you cannot delete it'); window.location.href='RequestDetails.php?requestID=$requestID';</script>";
-        exit();
-    }
 
     $deleteStmt = $conn->prepare("DELETE FROM request WHERE RequestID = ? AND UserID = ?");
     $deleteStmt->bind_param("ii", $requestID, $userID);
@@ -120,20 +116,23 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
                     <span class="detail-value"><?php echo $row['CreationDate']; ?></span>
 				</div>
 
+<?php if ($row['Status'] !== 'Delivered') { ?>
+
 <div class="edit-buttons-container" style="margin-top: 30px; display: flex; gap: 15px;">
-    <a href="EditRequest.php" class="role-btn" style="background-color: white; color: #5f1428; flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
+    <a href="EditRequest.php" class="role-btn" style="background-color: white; color: #5f1428; flex: 1;">
         Edit
     </a>
 
     <form method="post" style="flex: 1;">
-    <button type="submit" name="deleteRequest" class="role-btn"
+        <button type="submit" name="deleteRequest" class="role-btn"
         onclick="return confirm('Are you sure you want to delete this request?')"
-        style="background-color: #fefefe; color: #5f1428; flex: 1; width: 100%; border: none; cursor: pointer;">
-        Delete
-    </button>
+        style="background-color: #fefefe; color: #5f1428; flex: 1; width: 100%; border: none;">
+            Delete
+        </button>
     </form>
-
 </div>
+
+<?php } ?>
         </div>
     </div>
 
