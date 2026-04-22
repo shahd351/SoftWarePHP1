@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+      <link rel="stylesheet" href="style.css">
+
+
+</head>
+<body class="admin-page">
+  <div class="container">
+    <div class="top-bar">
+      <a href="login.html">
+      <img src="images/logout.png" alt="Logout" style="width:40px; height:40px; object-fit:contain;">
+	  </a>
+    </div>
+
+    <div class="logo-container">
+      <img src="images/thamen.bmp" alt="Thameen Logo" class="logo">
+    </div>
+
+    <h1 class="page-title">Admin Dashboard</h1>
+    <div class="divider"></div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>Total Requests</h3>
+        <p>25</p>
+      </div>
+
+      <div class="summary-card">
+        <h3>Pending</h3>
+        <p>5</p>
+      </div>
+
+      <div class="summary-card">
+        <h3>In Transit</h3>
+        <p>8</p>
+      </div>
+
+      <div class="summary-card">
+        <h3>Delivered</h3>
+        <p>12</p>
+      </div>
+
+      <div class="summary-card">
+        <h3>Average Rating</h3>
+        <p>4.2 ★</p>
+      </div>
+
+      <div class="summary-card">
+        <h3>Reviews</h3>
+        <p>9</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">Customer Ratings & Reviews</h2>
+
+    <div class="review-list">
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <div class="review-text">Very professional and secure delivery service.</div>
+        <div class="review-meta">Request ID: 5679</div>
+		<div class="review-meta">Date: 2026-03-29</div>
+      </div>
+
+      <div class="review-card">
+        <div class="stars">★★★★☆</div>
+        <div class="review-text">The process was clear and organized.</div>
+        <div class="review-meta">Request ID: 1432</div>
+	    <div class="review-meta">Date: 2026-03-29</div>
+
+      </div>
+
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <div class="review-text">Good service and smooth delivery experience.</div>
+        <div class="review-meta">Request ID: 1085</div>
+	    <div class="review-meta">Date: 2026-03-29</div>
+
+      </div>
+    </div>
+
+    <a href="drivers_control.html" class="btn">Manage Drivers</a>
+  </div>
+</body>
+</html>
