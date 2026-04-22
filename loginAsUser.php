@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user = $result->fetch_assoc();
             $_SESSION['user_id'] = $user['UserID'];
             $_SESSION['user_name'] = $user['FullName'];
-            header("Location: home.html");
+            header("Location: home.php");
             exit();
         } else {
             $error = "Invalid entries. Please try again.";
