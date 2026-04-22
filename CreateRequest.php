@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
             die("User not logged in");
     }   
-            // البحث عن أول سائق متاح حسب الترتيب
+            // Search for the first available driver in the order
     $driverID = null;
 
     $driverQuery = "SELECT DriverID FROM driver WHERE Status = 'Available' ORDER BY DriverID ASC LIMIT 1";
@@ -43,14 +43,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $driverRow = $driverResult->fetch_assoc();
         $driverID = $driverRow['DriverID'];
 
-        // بما أنه تم ربط الطلب بسائق، تصير حالة الطلب In Transit
+        // Since the request was linked to a driver, the request status becomes "in transit"
         $status = "In Transit";
 
-        // تحديث حالة السائق إلى Busy
+        // Driver status update to Buzy in data base
         $updateDriver = "UPDATE driver SET Status = 'Busy' WHERE DriverID = $driverID";
         $conn->query($updateDriver);
     } else {
-        // إذا ما فيه أي سائق متاح
+        // If no driver is available
         $driverID = null;
         $status = "Pending";
 
