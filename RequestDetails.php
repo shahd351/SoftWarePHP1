@@ -1,3 +1,61 @@
+<?php
+session_start();
+include 'db_connection.php';
+
+$userID = $_SESSION['user_id'] ?? null;
+$requestID = $_GET['requestID'] ?? null;
+
+if (!$userID) {
+    die("User not logged in");
+}
+
+if (!$requestID) {
+    die("Request ID not found");
+}
+
+$stmt = $conn->prepare("SELECT * FROM request WHERE RequestID = ? AND UserID = ?");
+$stmt->bind_param("ii", $requestID, $userID);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    die("Request not found");
+}
+
+$row = $result->fetch_assoc();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteRequest'])) {
+
+    if ($row['Status'] === 'Delivered') {
+        echo "<script>alert('This request has already been delivered, so you cannot delete it'); window.location.href='RequestDetails.php?requestID=$requestID';</script>";
+        exit();
+    }
+
+    $deleteStmt = $conn->prepare("DELETE FROM request WHERE RequestID = ? AND UserID = ?");
+    $deleteStmt->bind_param("ii", $requestID, $userID);
+    $deleteStmt->execute();
+    $driverID = $row['DriverID'];
+
+if ($driverID !== null) {
+    $updateDriver = $conn->prepare("UPDATE driver SET Status = 'Available' WHERE DriverID = ?");
+    $updateDriver->bind_param("i", $driverID);
+    $updateDriver->execute();
+}
+
+    echo "<script>alert('Request deleted successfully'); window.location.href='MyRequests.php';</script>";
+    exit();
+}
+
+
+if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
+    $imagePath = 'images/jewelry.png';
+} elseif ($row['ItemType'] === 'Cash' || $row['ItemType'] === 'cash') {
+    $imagePath = 'images/money.png';
+} else {
+    $imagePath = 'images/electronics.png';
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,61 +75,63 @@
             <div class="divider"></div>
 
             <div class="logo-container" style="margin-bottom: 20px;">
-                <img src="images/jewelry.png" alt="Order Icon" style="width: 200px; height: 200px;">
+                <img src="<?php echo $imagePath; ?>" alt="Order Icon" style="width: 200px; height: 200px;">
             </div>
 
             <div class="details-content">
                 <div class="detail-item">
                     <span class="detail-label">Request ID :</span>
-                    <span class="detail-value">1432</span>
+                    <span class="detail-value"><?php echo $row['RequestID']; ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Status :</span>
-                    <span class="detail-value" id="statusText">In Transit</span>
+                    <span class="detail-value" id="statusText"><?php echo $row['Status']; ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Item Type :</span>
-                    <span class="detail-value">Jewelry</span>
+                    <span class="detail-value"><?php echo $row['ItemType']; ?></span>
                 </div>
 				<div class="detail-item">
                     <span class="detail-label">Item Value Range :</span>
-                    <span class="detail-value" id="statusText">5000-10000</span>
+                    <span class="detail-value"><?php echo $row['ItemValueRange']; ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Pickup Location :</span>
-                    <span class="detail-value">Riyadh, Al Rawabi</span>
+                    <span class="detail-value"><?php echo $row['PickUpLocation']; ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Drop-off Location :</span>
-                    <span class="detail-value">Riyadh, Al Narjis</span>
+                    <span class="detail-value"><?php echo $row['DropOffLocation']; ?></span>
                 </div>
 				<div class="detail-item">
                     <span class="detail-label">Service Price :</span>
-                    <span class="detail-value">200 SAR</span>
+                    <span class="detail-value"><?php echo $row['ServicePrice']; ?> SAR</span>
                 </div>
 				<div class="detail-item">
                     <span class="detail-label">Insurance Coverage :</span>
-                    <span class="detail-value">10000</span>
+                    <span class="detail-value"><?php echo $row['InsuranceCoverage']; ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Security Code :</span>
-                    <span class="detail-value">4567</span> </div>
+                    <span class="detail-value"><?php echo $row['SecurityCode']; ?></span>
+                </div>
 				<div class="detail-item">
                     <span class="detail-label">Created At :</span>
-                    <span class="detail-value">2026-4-20</span>
+                    <span class="detail-value"><?php echo $row['CreationDate']; ?></span>
 				</div>
-            </div>
 
 <div class="edit-buttons-container" style="margin-top: 30px; display: flex; gap: 15px;">
-    <a href="EditRequest.html" class="role-btn" style="background-color: white; color: #5f1428; flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
+    <a href="EditRequest.php" class="role-btn" style="background-color: white; color: #5f1428; flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
         Edit
     </a>
 
-    <a href="MyRequests.html" class="role-btn" 
-       onclick="return confirm('Are you sure you want to delete this request?')" 
-       style="background-color: #fefefe; color: #5f1428; flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
+    <form method="post" style="flex: 1;">
+    <button type="submit" name="deleteRequest" class="role-btn"
+        onclick="return confirm('Are you sure you want to delete this request?')"
+        style="background-color: #fefefe; color: #5f1428; flex: 1; width: 100%; border: none; cursor: pointer;">
         Delete
-    </a>
+    </button>
+    </form>
 
 </div>
         </div>
