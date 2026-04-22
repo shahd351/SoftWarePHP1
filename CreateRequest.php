@@ -1,68 +1,69 @@
 <?php
 session_start();
-include 'db_connection.php'; 
+include 'db_connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-    if (!isset($_SESSION['UserID'])) {
-        echo "<script>alert('يرجى تسجيل الدخول أولاً'); window.location.href='login.html';</script>";
-        exit();
-    }
 
-    $userID = $_SESSION['UserID'];
-    $itemType = $_POST['itemType'];
-    $itemValueRange = $_POST['itemValue'];
-    $pickupLocation = $_POST['pickupLocation'];
-    $dropoffLocation = $_POST['dropoffLocation'];
-    $securityCode = $_POST['securityCode'];
+    $itemType = $_POST['itemType'] ?? '';
+    $itemValue = $_POST['itemValue'] ?? '';
+    $pickup = trim($_POST['pickupLocation'] ?? '');
+    $dropoff = trim($_POST['dropoffLocation'] ?? '');
+    $securityCode = $_POST['securityCode'] ?? '';
 
-    $prices = ['jewelry' => 200, 'cash' => 150, 'electronics' => 120];
-    $servicePrice = isset($prices[$itemType]) ? $prices[$itemType] : 0;
-    $insuranceCoverage = 10000;
+    $prices = [
+        "jewelry" => 200,
+        "cash" => 150,
+        "electronics" => 120
+    ];
 
-    // فحص السائقين
-    $sql_driver = "SELECT DriverID FROM driver WHERE Status = 'Available' LIMIT 1";
-    $result_driver = mysqli_query($conn, $sql_driver);
-
-    if (mysqli_num_rows($result_driver) > 0) {
-        $driver_data = mysqli_fetch_assoc($result_driver);
-        $assignedDriverID = $driver_data['DriverID'];
-        mysqli_query($conn, "UPDATE driver SET Status = 'Busy' WHERE DriverID = $assignedDriverID");
-        $requestStatus = "In Transit"; 
+    if (!isset($prices[$itemType])) {
+        echo "<script>alert('❌ Invalid item type');</script>";
     } else {
-        // حالة الفشل: يبقى في نفس الصفحة ويظهر التنبيه
-        echo "<script>
-                alert('نعتذر، جميع السائقين مشغولون الآن. يرجى المحاولة لاحقاً.');
-                window.history.back(); 
-              </script>";
-        exit();
+
+        $price = $prices[$itemType];
+        $insurance = 10000;
+        $status = "Pending";
+        $date = date("Y-m-d H:i:s");
+
+        $requestID = rand(10000, 99999);
+
+        // إذا عندكم يوزر مسجل دخول
+        $userID = $_SESSION['UserID'] ?? null;
+        $driverID = null;
+
+        $stmt = $conn->prepare("
+            INSERT INTO request
+            (RequestID, ItemType, ItemValueRange, PickUpLocation, DropOffLocation, SecurityCode, ServicePrice, InsuranceCoverage, Status, CreationDate, UserID, DriverID)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "isssssdsssii",
+            $requestID,
+            $itemType,
+            $itemValue,
+            $pickup,
+            $dropoff,
+            $securityCode,
+            $price,
+            $insurance,
+            $status,
+            $date,
+            $userID,
+            $driverID
+        );
+
+        if ($stmt->execute()) {
+            echo "<script>alert('✅ Request saved in database successfully'); window.location.href='CreateRequest.php';</script>";
+        } else {
+            echo "<script>alert('❌ Database Error: " . addslashes($stmt->error) . "');</script>";
+        }
+
+        $stmt->close();
     }
-
-    // إدخال الطلب
-    $creationDate = date('Y-m-d H:i:s');
-    $sql_insert = "INSERT INTO request (ItemType, ItemValueRange, PickUpLocation, DropOffLocation, SecurityCode, ServicePrice, InsuranceCoverage, Status, CreationDate, UserID, DriverID) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = mysqli_prepare($conn, $sql_insert);
-    mysqli_stmt_bind_param($stmt, "sssssddssii", $itemType, $itemValueRange, $pickupLocation, $dropoffLocation, $securityCode, $servicePrice, $insuranceCoverage, $requestStatus, $creationDate, $userID, $assignedDriverID);
-
-    if (mysqli_stmt_execute($stmt)) {
-        // حالة النجاح: الانتقال لصفحة عرض الطلبات
-        echo "<script>
-                alert('تم إنشاء الطلب بنجاح!');
-                window.location.href = 'MyRequests.php'; 
-              </script>";
-    } else {
-        // في حال فشل الاستعلام: يبقى في نفس الصفحة
-        echo "<script>
-                alert('حدث خطأ أثناء حفظ الطلب، حاول مرة أخرى.');
-                window.history.back();
-              </script>";
-    }
-
-    mysqli_stmt_close($stmt);
-    mysqli_close($conn);
 }
+
+$conn->close();
 ?>
 
 
@@ -90,9 +91,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <h2 class="Home-title">Create Request Page</h2>
             <div class="divider"></div>
             
-            <form action="" method="post" class="create-form" id="createRequestForm">
+            <form action="CreateRequest.php" method="post" class="create-form" id="createRequestForm">
                 <div class="input-group">
-                    <select class="select-field" id="itemType" required>
+                    <select class="select-field" id="itemType" name="itemType" required>
                         <option value="" disabled selected>Select The Item Type</option>
                         <option value="jewelry">Jewelry</option>
                         <option value="cash">Cash</option>
@@ -101,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 
                 <div class="input-group">
-                    <select class="select-field" id="itemValue" required>
+                    <select class="select-field" id="itemValue" name="itemValue" required>
                         <option value="" disabled selected>Select The Item Value Range</option>
                         <option value="less5000">Less than 5,000 SAR</option>
                         <option value="5000-10000">5,000 - 10,000 SAR</option>
@@ -110,15 +111,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 
                 <div class="input-group">
-                    <input type="text" id="pickupLocation" placeholder="Pickup Location Ex: Riyadh, Al Olaya" class="input-field" required>
+                    <input type="text" id="pickupLocation" name="pickupLocation" placeholder="Pickup Location Ex: Riyadh, Al Olaya" class="input-field" required>
                 </div>
                 
                 <div class="input-group">
-                    <input type="text" id="dropoffLocation" placeholder="Dropoff Location Ex: Riyadh, Al Malaz" class="input-field" required>
+                    <input type="text" id="dropoffLocation" name="dropoffLocation" placeholder="Dropoff Location Ex: Riyadh, Al Malaz" class="input-field" required>
                 </div>
                 
                 <div class="input-group">
-                    <input type="password" id="securityCode" placeholder="Security Code (4 digits)" class="input-field" maxlength="4" required>
+                    <input type="password" id="securityCode" name="securityCode" placeholder="Security Code (4 digits)" class="input-field" maxlength="4" required>
                     <div class="security-note">4-digit code (shared with receiver)</div>
                 </div>
                 
