@@ -4,6 +4,7 @@ include 'db_connection.php';
 
 $error = "";
 $success = "";
+$fullName = $phone = $dob = $password = $confirmPassword = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $fullName = $_POST['fullName'];
@@ -20,32 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     elseif (strlen($password) < 8) {
         $error = "Password must be at least 8 characters";
     }
-    // التحقق من العمر (18+)
+    // التحقق من العمر
     else {
         $birthDate = new DateTime($dob);
         $today = new DateTime();
         $age = $today->diff($birthDate)->y;
         
-        echo "Age: " . $age; 
-
         if ($age < 18) {
-            $error = "You must be at least 18 years old to register";
+            $error = "You must be at least 18 years old";
         } else {
-            // التحقق من أن رقم الجوال غير مسجل مسبقاً
-            $checkSql = "SELECT * FROM User WHERE PhoneNumber = '$phone'";
-            $checkResult = $conn->query($checkSql);
-            
-            if ($checkResult->num_rows > 0) {
+            // التحقق من أن رقم الجوال غير مسجل
+            $check = mysqli_query($conn, "SELECT * FROM User WHERE PhoneNumber='$phone'");
+            if (mysqli_num_rows($check) > 0) {
                 $error = "Phone number already registered";
             } else {
-                // إضافة المستخدم الجديد
-                $sql = "INSERT INTO User (FullName, PhoneNumber, Password, DateOfBirth) 
-                        VALUES ('$fullName', '$phone', '$password', '$dob')";
+                // إضافة المستخدم
+                $query = "INSERT INTO User (FullName, PhoneNumber, Password, DateOfBirth) 
+                          VALUES ('$fullName', '$phone', '$password', '$dob')";
                 
-                if ($conn->query($sql) === TRUE) {
+                if (mysqli_query($conn, $query)) {
                     $success = "Account created successfully! Please login.";
+                    // تفريغ الحقول بعد النجاح
+                    $fullName = $phone = $dob = $password = $confirmPassword = "";
                 } else {
-                    $error = "Error: " . $conn->error;
+                    $error = "Database error: " . mysqli_error($conn);
                 }
             }
         }
@@ -69,13 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         
         <h2 class="login-title">Sign Up!</h2>
-        
+        <p class="subtitle">Create your account to get started.</p>
+
         <?php if ($error != "") { ?>
             <div style="background-color: #ffebee; border: 1px solid #ff1744; border-radius: 25px; padding: 12px; margin-bottom: 20px; text-align: center;">
                 <span style="color: #ff1744; font-weight: bold;">⚠️ <?php echo $error; ?></span>
             </div>
         <?php } ?>
-        
+
         <?php if ($success != "") { ?>
             <div style="background-color: #d4edda; border: 1px solid #28a745; border-radius: 25px; padding: 12px; margin-bottom: 20px; text-align: center;">
                 <span style="color: #28a745; font-weight: bold;">✅ <?php echo $success; ?></span>
@@ -83,76 +83,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php } ?>
 
 
-        <form class="login-form" method="POST">
+        <form class="login-form" method="POST" id="signupForm">
             <div class="input-group">
                 <input type="text" name="fullName" placeholder="FullName" id="fullName" class="input-field" required>
             </div>
             
             <div class="input-group">
-                <input type="text" placeholder="PhoneNumber" id="phoneNumber" class="input-field" required>
+                <input type="text" name="phone" placeholder="PhoneNumber" id="phoneNumber" class="input-field" required>
             </div>
             
             <div class="input-group">
-                <input type="date" placeholder="Date of Birth" id="dob" class="input-field" required>
+                <input type="date" name="dob" placeholder="Date of Birth" id="dob" class="input-field" required>
             </div>
             
             <div class="input-group">
-                <input type="password" placeholder="Password" id="password" class="input-field" required>
+                <input type="password" name="password" placeholder="Password" id="password" class="input-field" required>
             </div>
             
             <div class="input-group">
-                <input type="password" placeholder="ConfirmPassword" id="confirmPassword" class="input-field" required>
+                <input type="password" name="confirmPassword" placeholder="ConfirmPassword" id="confirmPassword" class="input-field" required>
             </div>
             
             <button type="submit" class="login-btn">SIGN UP</button>
         </form>
         
         <div class="signup-link">
-            <a href="loginAsUser.html">Already Have a Account? Sign In</a>
+            <a href="loginAsUser.php">Already Have a Account? Sign In</a>
         </div>
     </div>
 	
 	
-	 <script>
-        document.getElementById('signupForm').onsubmit = function(e) {
-            e.preventDefault();
-            
-            // حساب العمر
-            let dob = document.getElementById('dob').value;
-            let birthDate = new Date(dob);
-            let today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            let monthDiff = today.getMonth() - birthDate.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            
-            // التحقق من العمر
-            if (age < 18) {
-                alert("You are under 18 years old, you cannot register.");
-                return false;
-            }
-            
-            // التحقق من تطابق كلمة المرور
-            let password = document.getElementById('password').value;
-            let confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                alert("The password does not match.");
-                return false;
-            }
-            
-            // التحقق من طول كلمة المرور
-            if (password.length < 8) {
-                alert("The password must be at least 8 characters long.");
-                return false;
-            }
-            
-            // اذا كل شي صح انتقل لصفحه الدخول
-            window.location.href = "loginAsUser.html";
-        };
-    </script>
+
 	
 	
 </body>
