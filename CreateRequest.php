@@ -27,8 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $requestID = rand(10000, 99999);
 
-        // إذا عندكم يوزر مسجل دخول
-        $userID = $_SESSION['UserID'] ?? null;
+        // Linking add request to user ID
+    if (isset($_SESSION['user_id'])) {
+        $userID = $_SESSION['user_id'];
+    } else {
+            die("User not logged in");
+    }   
         $driverID = null;
 
         $stmt = $conn->prepare("
