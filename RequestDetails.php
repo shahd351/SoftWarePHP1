@@ -119,9 +119,9 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
 <?php if ($row['Status'] !== 'Delivered') { ?>
 
 <div class="edit-buttons-container" style="margin-top: 30px; display: flex; gap: 15px;">
-    <a href="EditRequest.php?requestID=<?php echo $row['RequestID']; ?>" class="role-btn" style="background-color: white; color: #5f1428;">
-    Edit
-</a>
+    <a href="EditRequest.php?requestID=<?php echo $row['RequestID']; ?>"  class="role-btn" style="background-color: white; color: #5f1428; flex: 1;">
+        Edit
+    </a>
 
     <form method="post" style="flex: 1;">
         <button type="submit" name="deleteRequest" class="role-btn"
