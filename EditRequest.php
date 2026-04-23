@@ -28,13 +28,13 @@ if ($conn->connect_error) {
 $conn->set_charset("utf8");
 
 // ========== Authentication ==========
-if (!isset($_SESSION['UserID'])) {
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.html");
     exit;
 }
 
-$userID = $_SESSION['UserID'];
-$requestID = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$userID = $_SESSION['user_id'];
+$requestID = isset($_GET['requestID']) ? (int)$_GET['requestID'] : 0;
 $message = '';
 $error = '';
 
