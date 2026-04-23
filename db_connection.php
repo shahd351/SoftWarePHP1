@@ -6,7 +6,7 @@ $host = "localhost";
 $username = "root";
 $password = "root";
 $dbname = "thamean";
-$port = 8889;  // منفذ MAMP لـ MySQL
+$port = 3306;  // منفذ MAMP لـ MySQL
 
 $conn = new mysqli($host, $username, $password, $dbname, $port);
 
