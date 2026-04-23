@@ -1,34 +1,40 @@
+> .:
 <?php
-// edit_request.php - Allows user to edit their request only once
-require_once 'config.php';
-checkLogin();
+// edit_request.php - Allows user to edit their request only once (OOP style)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once 'config.php';  // يجب أن يعرّف $conn كـ mysqli object
+
+session_start();
+if (!isset($_SESSION['UserID'])) {
+    header("Location: login.html");
+    exit;
+}
 
 $userID = $_SESSION['UserID'];
 $requestID = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $message = '';
 $error = '';
 
-// 1. Automatically add is_edited column if it doesn't exist
-$check_col = "SHOW COLUMNS FROM request LIKE 'is_edited'";
-$col_res = mysqli_query($conn, $check_col);
-if (mysqli_num_rows($col_res) == 0) {
-    $alter = "ALTER TABLE request ADD is_edited TINYINT(1) NOT NULL DEFAULT '0'";
-    mysqli_query($conn, $alter);
+// 1. Automatically add 'is_edited' column if it doesn't exist
+$check_col = $conn->query("SHOW COLUMNS FROM request LIKE 'is_edited'");
+if (!$check_col || $check_col->num_rows == 0) {
+    $conn->query("ALTER TABLE request ADD is_edited TINYINT(1) NOT NULL DEFAULT '0'");
 }
 
 // 2. Fetch request data and check ownership
-$query = "SELECT r.*, 
-          IFNULL(r.is_edited, 0) AS already_edited
-          FROM request r
-          WHERE r.RequestID = $requestID AND r.UserID = $userID";
-$result = mysqli_query($conn, $query);
+$stmt = $conn->prepare("SELECT *, IFNULL(is_edited, 0) AS already_edited FROM request WHERE RequestID = ? AND UserID = ?");
+$stmt->bind_param("ii", $requestID, $userID);
+$stmt->execute();
+$result = $stmt->get_result();
 
-if (mysqli_num_rows($result) == 0) {
+if ($result->num_rows == 0) {
     die("Request not found or does not belong to you.");
 }
-$request = mysqli_fetch_assoc($result);
+$request = $result->fetch_assoc();
 
-// 3. Prevent editing if already delivered or already edited once
+// 3. Prevent editing if delivered or already edited once
 if ($request['Status'] == 'Delivered') {
     die("Cannot edit a request that has already been delivered.");
 }
@@ -38,27 +44,22 @@ if ($request['already_edited']) {
 
 // 4. Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $itemType       = mysqli_real_escape_string($conn, $_POST['itemType']);
-    $itemValueRange = mysqli_real_escape_string($conn, $_POST['itemValueRange']);
-    $pickupLocation = mysqli_real_escape_string($conn, trim($_POST['pickupLocation']));
-    $dropoffLocation= mysqli_real_escape_string($conn, trim($_POST['dropoffLocation']));
-    $securityCode   = mysqli_real_escape_string($conn, trim($_POST['securityCode']));
+    $itemType       = $_POST['itemType'];
+    $itemValueRange = $_POST['itemValueRange'];
+    $pickupLocation = trim($_POST['pickupLocation']);
+    $dropoffLocation= trim($_POST['dropoffLocation']);
+    $securityCode   = trim($_POST['securityCode']);
     
-    // Calculate service price based on item type
     $prices = ['jewelry'=>200, 'cash'=>150, 'electronics'=>120];
     $servicePrice = isset($prices[$itemType]) ? $prices[$itemType] : 120;
     
-    $update = "UPDATE request 
-               SET ItemType = '$itemType',
-                   ItemValueRange = '$itemValueRange',
-                   PickUpLocation = '$pickupLocation',
-                   DropOffLocation = '$dropoffLocation',
-                   SecurityCode = '$securityCode',
-                   ServicePrice = $servicePrice,
-                   is_edited = 1
-               WHERE RequestID = $requestID AND UserID = $userID";
+    $update = $conn->prepare("UPDATE request 
+                              SET ItemType = ?, ItemValueRange = ?, PickUpLocation = ?, 
+                                  DropOffLocation = ?, SecurityCode = ?, ServicePrice = ?, is_edited = 1
+                              WHERE RequestID = ? AND UserID = ?");
+    $update->bind_param("sssssiii", $itemType, $itemValueRange, $pickupLocation, $dropoffLocation, $securityCode, $servicePrice, $requestID, $userID);
     
-    if (mysqli_query($conn, $update)) {
+    if ($update->execute()) {
         $message = "✅ Changes saved successfully. You cannot edit this request again.";
         // Update displayed data
         $request['ItemType'] = $itemType;
@@ -69,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $request['ServicePrice'] = $servicePrice;
         $request['already_edited'] = 1;
     } else {
-        $error = "Error saving changes: " . mysqli_error($conn);
+        $error = "Error saving changes: " . $conn->error;
     }
 }
 ?>
@@ -77,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="ar" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thamean - Edit Request</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -99,10 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if($error): ?>
             <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:8px; margin-bottom:15px;"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
-<form method="POST" class="create-form" id="editRequestForm">
+
+        <form method="POST" class="create-form" id="editRequestForm">
             <div class="input-group">
                 <label>Item Type :</label>
-                <select name="itemType" id="itemType" class="input-field" onchange="updatePrice()" required>
+
+> .:
+<select name="itemType" id="itemType" class="input-field" onchange="updatePrice()" required>
                     <option value="jewelry" <?= $request['ItemType'] == 'Jewelry' ? 'selected' : '' ?>>Jewelry</option>
                     <option value="cash" <?= $request['ItemType'] == 'Cash' ? 'selected' : '' ?>>Cash</option>
                     <option value="electronics" <?= $request['ItemType'] == 'Electronics' ? 'selected' : '' ?>>Electronics</option>
@@ -147,13 +150,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-// Update displayed price when item type changes
 function updatePrice() {
     const type = document.getElementById('itemType').value;
     const prices = { 'jewelry': '200 SAR', 'cash': '150 SAR', 'electronics': '120 SAR' };
     document.getElementById('priceDisplay').innerText = prices[type];
 }
-// Warn user if item value exceeds insurance coverage
 function checkValue() {
     if (document.getElementById('itemValue').value === 'more10000') {
         alert("Note: Insurance coverage is limited to 10,000 SAR.");
