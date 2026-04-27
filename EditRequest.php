@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <img src="images/logout.png" alt="Logout" class="logout-icon">
     </a>
 
-> .:
+
 <div class="container">
         <div class="logo-container">
             <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
