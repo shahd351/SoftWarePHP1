@@ -105,7 +105,7 @@ CREATE TABLE `request` (
   `CreationDate` datetime NOT NULL,
   `UserID` int(11) DEFAULT NULL,
   `DriverID` int(11) DEFAULT NULL
-  is_edited tinyint(1) NOT NULL DEFAULT '0'
+  'is_edited' tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
