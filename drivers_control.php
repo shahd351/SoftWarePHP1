@@ -48,12 +48,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_driver"])) {
 
     $driverID = (int) $_POST["driver_id"];
 
-    $stmt = $conn->prepare("DELETE FROM driver WHERE DriverID = ?");
+    // check if driver has active requests
+    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM request WHERE DriverID = ? AND Status != 'Delivered'");
     $stmt->bind_param("i", $driverID);
     $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
     $stmt->close();
 
-    $successMessage = "Driver deleted successfully.";
+    if ($row["total"] > 0) {
+        $successMessage = "Cannot delete this driver because he has an active request.";
+    } else {
+        $stmt = $conn->prepare("DELETE FROM driver WHERE DriverID = ?");
+        $stmt->bind_param("i", $driverID);
+        $stmt->execute();
+        $stmt->close();
+
+        $successMessage = "Driver deleted successfully.";
+    }
 }
 
 // assign request to driver
