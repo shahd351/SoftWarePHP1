@@ -134,6 +134,22 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
 </div>
 
 <?php } ?>
+
+<?php if ($row['Status'] === 'Delivered') { ?>
+
+<div class="edit-buttons-container" style="margin-top: 30px; display: flex; justify-content: center;">
+    
+    <a href="rate_review.php?requestID=<?php echo $row['RequestID']; ?>" 
+       class="role-btn" 
+       style="background-color: white; color: #5f1428; padding: 10px 20px; border-radius: 20px; text-decoration: none;">
+       
+       Rate & Review Page
+       
+    </a>
+
+</div>
+
+<?php } ?>
         </div>
     </div>
 
