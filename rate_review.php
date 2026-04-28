@@ -115,7 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="page-title">Rate & Review</h1>
     <div class="divider"></div>
 
-    
+    <div class="review-box">
+        <div class="status-box">
+            <strong>Request Status:</strong> Delivered ✅
+        </div>
 
         <?php if ($errorMsg): ?>
             <div class="error-msg"><?= htmlspecialchars($errorMsg) ?></div>
