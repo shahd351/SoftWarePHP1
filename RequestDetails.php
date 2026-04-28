@@ -139,7 +139,7 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
 <body>
 <div class="container" style="text-align:center; margin-top:50px;">
     <h2>اختبار صفحة Rate & Review</h2>
-    <button type="button" onclick="window.location.href='rate_review.php?requestID=2'" class="role-btn">
+    <button type="button" onclick="window.location.href='rate_review.php?requestID=30953'" class="role-btn">
         افتح صفحة التقييم (Request ID = 2)
     </button>
 </div>
