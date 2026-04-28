@@ -1,4 +1,4 @@
-> .:
+
 <?php
 // edit_request.php - Allows editing only once, with Riyadh location validation
 error_reporting(E_ALL);
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="logo-container">
 
-> .:
+
 <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
         </div>
         <h2 class="Home-title">Edit Request</h2>

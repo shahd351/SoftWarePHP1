@@ -129,8 +129,7 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
         style="background-color: #fefefe; color: #5f1428; flex: 1; width: 100%; border: none;">
             Delete
         </button>
-         <button type="button" class="role-btn" onclick="window.location.href='rate_review.html'" style="background-color: white; color: #5f1428; flex: 1;">Rate & Review page</button>
-    </form>
+       <button type="button" class="role-btn" onclick="window.location.href='rate_review.php?requestID=<?php echo $row['RequestID']; ?>'" style="background-color: white; color: #5f1428; flex: 1;">Rate & Review</button>
 </div>
 
 <?php } ?>
