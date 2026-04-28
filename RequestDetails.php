@@ -129,7 +129,23 @@ if ($row['ItemType'] === 'Jewelry' || $row['ItemType'] === 'jewelry') {
         style="background-color: #fefefe; color: #5f1428; flex: 1; width: 100%; border: none;">
             Delete
         </button>
-       <button type="button" class="role-btn" onclick="window.location.href='rate_review.php?requestID=<?php echo $row['RequestID']; ?>'" style="background-color: white; color: #5f1428; flex: 1;">Rate & Review</button>
+         <!-- test_my_rate.php -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>اختبار صفحة التقييم</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="text-align:center; margin-top:50px;">
+    <h2>اختبار صفحة Rate & Review</h2>
+    <button type="button" onclick="window.location.href='rate_review.php?requestID=2'" class="role-btn">
+        افتح صفحة التقييم (Request ID = 2)
+    </button>
+</div>
+</body>
+</html>
+    </form>
 </div>
 
 <?php } ?>
