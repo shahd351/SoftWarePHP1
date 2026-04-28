@@ -114,7 +114,7 @@ $conn->close();
                 <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
             </div>
             
-            <h2 class="Home-title">Create Request Page</h2>
+            <h2 class="Home-title">Add Request Page</h2>
             <div class="divider"></div>
             
             <form action="CreateRequest.php" method="post" class="create-form" id="createRequestForm">

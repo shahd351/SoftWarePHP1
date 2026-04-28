@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['requestId']) && $_GET['r
 				<a href="CreateRequest.php" class="home-card-btn">
 					<div class="card-content">
                         <img src="images/NewRequest.png" alt="New Request" class="card-icon">
-							<div class="card-title">CREATE NEW REQUEST</div>
+							<div class="card-title">ADD NEW REQUEST</div>
 					</div>
 				</a>
 			</div>

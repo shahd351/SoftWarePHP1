@@ -101,7 +101,7 @@ $result = $stmt->get_result();
             <div class="request-details-text">
                 <span style="font-size:18px; font-weight:bold; color:white;">You don’t have any requests yet</span>
                 <a href="CreateRequest.php" style="font-size:18px; font-weight:bold; color:white;">
-                 Create your first request
+                 Add your first request
                 </a>        
             </div>
         </div>
