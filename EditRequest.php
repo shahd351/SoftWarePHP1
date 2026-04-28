@@ -1,6 +1,6 @@
-
+> .:
 <?php
-// edit_request.php - Redirects to RequestDetails on error, no inline error display
+// edit_request.php - Allows editing only once, with Riyadh location validation
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -39,7 +39,7 @@ if ($result->num_rows == 0) {
 
 $request = $result->fetch_assoc();
 
-// Check restrictions and redirect if needed (no page display)
+// Check restrictions
 if ($request['Status'] == 'Delivered') {
     echo "<script>alert('Cannot edit a request that has already been delivered.'); window.location.href='RequestDetails.php?requestID=$requestID';</script>";
     exit;
@@ -49,13 +49,23 @@ if ($request['already_edited']) {
     exit;
 }
 
-// If no restrictions, process form submission
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $itemType       = $_POST['itemType'];
     $itemValueRange = $_POST['itemValueRange'];
     $pickupLocation = trim($_POST['pickupLocation']);
     $dropoffLocation= trim($_POST['dropoffLocation']);
     $securityCode   = trim($_POST['securityCode']);
+    
+    // --- VALIDATION: Check that both locations contain "Riyadh" (case-insensitive) ---
+    if (stripos($pickupLocation, 'Riyadh') === false) {
+        echo "<script>alert('Error: Pickup location must be within Riyadh (include the word \"Riyadh\").'); window.history.back();</script>";
+        exit;
+    }
+    if (stripos($dropoffLocation, 'Riyadh') === false) {
+        echo "<script>alert('Error: Drop-off location must be within Riyadh (include the word \"Riyadh\").'); window.history.back();</script>";
+        exit;
+    }
     
     $prices = ['jewelry'=>200, 'cash'=>150, 'electronics'=>120];
     $servicePrice = $prices[$itemType] ?? 120;
@@ -83,24 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Thamean - Edit Request</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Hide any possible arrows or extra icons */
-        .request-arrow, .arrow, [class*="arrow"], [id*="arrow"] {
-            display: none !important;
-        }
-        /* Also hide pseudo-elements that might create arrows */
-        .create-request-container::before,
-        .create-request-container::after,
-        .container::before,
-        .container::after,
-        .logout-link::before,
-        .logout-link::after {
-            display: none !important;
-            content: none !important;
-        }
-        /* Ensure no extra icons appear near logout */
-        .logout-icon + * {
-            display: none;
-        }
+        /* Hide any arrows or extra icons */
+        .request-arrow, .arrow { display: none !important; }
     </style>
 </head>
 <body>
@@ -108,11 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="login.html" class="logout-link">
         <img src="images/logout.png" alt="Logout" class="logout-icon">
     </a>
-
-
-<div class="container">
+    <div class="container">
         <div class="logo-container">
-            <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
+
+> .:
+<img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
         </div>
         <h2 class="Home-title">Edit Request</h2>
         <div class="divider"></div>
@@ -137,10 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="input-group">
                 <label>Pickup Location :</label>
                 <input type="text" name="pickupLocation" class="input-field" value="<?= htmlspecialchars($request['PickUpLocation']) ?>" required>
+                <small style="color: gray;">Must be within Riyadh (include "Riyadh")</small>
             </div>
             <div class="input-group">
                 <label>Dropoff Location :</label>
                 <input type="text" name="dropoffLocation" class="input-field" value="<?= htmlspecialchars($request['DropOffLocation']) ?>" required>
+                <small style="color: gray;">Must be within Riyadh (include "Riyadh")</small>
             </div>
             <div class="input-group">
                 <label>Security Code :</label>
