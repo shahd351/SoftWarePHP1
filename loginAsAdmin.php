@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $admin = $result->fetch_assoc();
         $_SESSION['admin_id'] = $admin['AdminID'];
         $_SESSION['admin_name'] = $admin['UserName'];
-        header("Location: admin_dashboard.html");
+        header("Location: admin_dashboard.php");
         exit();
     } else {
         $error = "Invalid username or password";
