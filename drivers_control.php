@@ -32,8 +32,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_driver"])) {
         $idError = "National ID must be exactly 10 digits.";
     }
 
+    // check if phone number already exists
+    if ($phoneError === "") {
+        $stmt = $conn->prepare("SELECT DriverID FROM driver WHERE PhoneNumber = ?");
+        $stmt->bind_param("s", $phoneNumber);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $phoneError = "Phone number already exists.";
+        }
+
+        $stmt->close();
+    }
+
+    // check if national id already exists
+    if ($idError === "") {
+        $stmt = $conn->prepare("SELECT DriverID FROM driver WHERE NationalID = ?");
+        $stmt->bind_param("s", $nationalId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $idError = "National ID already exists.";
+        }
+
+        $stmt->close();
+    }
+
     if ($nameError === "" && $phoneError === "" && $idError === "") {
-        // insert driver with admin id = 1
         $stmt = $conn->prepare("INSERT INTO driver (FullName, PhoneNumber, NationalID, Status, AdminID) VALUES (?, ?, ?, 'Available', 1)");
         $stmt->bind_param("sss", $fullName, $phoneNumber, $nationalId);
         $stmt->execute();
