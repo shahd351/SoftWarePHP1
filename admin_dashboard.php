@@ -4,37 +4,45 @@ ini_set('display_errors', 1);
 
 require_once "db_connection.php";
 
-/* Total Requests */
-$stmt = $conn->query("SELECT COUNT(*) AS total FROM request");
+// current week starts from Monday
+$weekStart = "DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)";
+
+// total requests this week
+$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE CreationDate >= $weekStart");
 $row = $stmt->fetch_assoc();
 $totalRequests = $row['total'];
 
-/* Pending Requests */
-$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'Pending'");
+// pending requests this week
+$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'Pending' AND CreationDate >= $weekStart");
 $row = $stmt->fetch_assoc();
 $pendingRequests = $row['total'];
 
-/* In Transit Requests */
-$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'In Transit'");
+// in transit requests this week
+$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'In Transit' AND CreationDate >= $weekStart");
 $row = $stmt->fetch_assoc();
 $inTransitRequests = $row['total'];
 
-/* Delivered Requests */
-$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'Delivered'");
+// delivered requests this week
+$stmt = $conn->query("SELECT COUNT(*) AS total FROM request WHERE Status = 'Delivered' AND CreationDate >= $weekStart");
 $row = $stmt->fetch_assoc();
 $deliveredRequests = $row['total'];
 
-/* Average Rating */
-$stmt = $conn->query("SELECT AVG(Stars) AS avg_rating FROM rating");
-$row = $stmt->fetch_assoc();
-$averageRating = $row['avg_rating'] ? round($row['avg_rating'], 1) : 0;
-
-/* Total Reviews */
-$stmt = $conn->query("SELECT COUNT(*) AS total FROM review");
+// total reviews this week
+$stmt = $conn->query("SELECT COUNT(*) AS total FROM review WHERE DateSubmitted >= $weekStart");
 $row = $stmt->fetch_assoc();
 $totalReviews = $row['total'];
 
-/* Latest Reviews + Ratings */
+// average rating this week
+$stmt = $conn->query("
+    SELECT AVG(rating.Stars) AS avg_rating
+    FROM rating
+    JOIN review ON rating.RequestID = review.RequestID
+    WHERE review.DateSubmitted >= $weekStart
+");
+$row = $stmt->fetch_assoc();
+$averageRating = $row['avg_rating'] ? round($row['avg_rating'], 1) : 0;
+
+// reviews and ratings this week
 $stmt = $conn->query("
     SELECT 
         review.ReviewText,
@@ -43,8 +51,8 @@ $stmt = $conn->query("
         rating.Stars
     FROM review
     LEFT JOIN rating ON review.RequestID = rating.RequestID
+    WHERE review.DateSubmitted >= $weekStart
     ORDER BY review.DateSubmitted DESC
-    LIMIT 3
 ");
 
 $reviews = [];
@@ -61,10 +69,12 @@ while ($row = $stmt->fetch_assoc()) {
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="admin-page">
   <div class="container">
+
     <div class="top-bar">
-      <a href="login.html">
+      <a href="loginAsAdmin.php">
         <img src="images/logout.png" alt="Logout" class="logout-icon">
       </a>
     </div>
@@ -77,8 +87,9 @@ while ($row = $stmt->fetch_assoc()) {
     <div class="divider"></div>
 
     <div class="summary-grid">
+
       <div class="summary-card">
-        <h3>Total Requests</h3>
+        <h3>Total Requests This Week</h3>
         <p><?php echo $totalRequests; ?></p>
       </div>
 
@@ -98,22 +109,26 @@ while ($row = $stmt->fetch_assoc()) {
       </div>
 
       <div class="summary-card">
-        <h3>Average Rating</h3>
+        <h3>Average Rating This Week</h3>
         <p><?php echo $averageRating; ?> ★</p>
       </div>
 
       <div class="summary-card">
-        <h3>Reviews</h3>
+        <h3>Reviews This Week</h3>
         <p><?php echo $totalReviews; ?></p>
       </div>
+
     </div>
 
-    <h2 class="section-title">Customer Ratings & Reviews</h2>
+    <h2 class="section-title">Customer Ratings & Reviews This Week</h2>
 
     <div class="review-list">
+
       <?php if (count($reviews) > 0): ?>
+
         <?php foreach ($reviews as $review): ?>
           <div class="review-card">
+
             <div class="stars">
               <?php
               $stars = isset($review['Stars']) ? (int)$review['Stars'] : 0;
@@ -132,16 +147,22 @@ while ($row = $stmt->fetch_assoc()) {
             <div class="review-meta">
               Date: <?php echo htmlspecialchars($review['DateSubmitted']); ?>
             </div>
+
           </div>
         <?php endforeach; ?>
+
       <?php else: ?>
+
         <div class="review-card">
-          <div class="review-text">No reviews available yet.</div>
+          <div class="review-text">No reviews available this week.</div>
         </div>
+
       <?php endif; ?>
+
     </div>
 
     <a href="drivers_control.php" class="btn">Manage Drivers</a>
+
   </div>
 </body>
 </html>
