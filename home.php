@@ -2,6 +2,11 @@
 session_start();
 include 'db_connection.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.html");
+    exit();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['requestId']) && $_GET['requestId'] !== '') {
     $requestID = trim($_GET['requestId']);
     $userID = $_SESSION['user_id'] ?? null;

@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.html");
+    exit();
+}
+
 include 'db_connection.php';
 
 $userID = $_SESSION['user_id'] ?? null;
