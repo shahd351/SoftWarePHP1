@@ -74,7 +74,7 @@ while ($row = $stmt->fetch_assoc()) {
   <div class="container">
 
     <div class="top-bar">
-      <a href="loginAsAdmin.php">
+      <a href="login.html">
         <img src="images/logout.png" alt="Logout" class="logout-icon">
       </a>
     </div>

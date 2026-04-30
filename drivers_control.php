@@ -144,7 +144,7 @@ while ($row = $requestsResult->fetch_assoc()) {
   <div class="container">
 
     <div class="top-bar">
-      <a href="loginAsAdmin.php">
+      <a href="login.html">
         <img src="images/logout.png" class="logout-icon">
       </a>
     </div>
