@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $success = "Account created successfully! Please login.";
                     // تفريغ الحقول بعد النجاح
                     $fullName = $phone = $dob = $password = $confirmPassword = "";
+
+                    echo "<script>setTimeout(function() { window.location.href = 'loginAsUser.php'; }, 2000);</script>";
                 } else {
                     $error = "Database error: " . mysqli_error($conn);
                 }
