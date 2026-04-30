@@ -75,24 +75,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_driver"])) {
 
     $driverID = (int) $_POST["driver_id"];
 
-    // check if driver has active requests
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM request WHERE DriverID = ? AND Status != 'Delivered'");
-    $stmt->bind_param("i", $driverID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
+    // Check if the driver has any active or pending requests
+    $checkActive = $conn->prepare("SELECT RequestID FROM request WHERE DriverID = ? AND Status != 'Delivered'");
+    $checkActive->bind_param("i", $driverID);
+    $checkActive->execute();
+    $activeResult = $checkActive->get_result();
 
-    if ($row["total"] > 0) {
-        $successMessage = "Cannot delete this driver because he has an active request.";
+    if ($activeResult->num_rows > 0) {
+
+        // Prevent deletion if driver has active or pending requests
+        $successMessage = "Cannot delete this driver because they have active or pending requests.";
+
     } else {
-        $stmt = $conn->prepare("DELETE FROM driver WHERE DriverID = ?");
-        $stmt->bind_param("i", $driverID);
-        $stmt->execute();
-        $stmt->close();
 
-        $successMessage = "Driver deleted successfully.";
+        // Detach delivered requests from the driver
+        $detach = $conn->prepare("UPDATE request SET DriverID = NULL WHERE DriverID = ? AND Status = 'Delivered'");
+        $detach->bind_param("i", $driverID);
+        $detach->execute();
+        $detach->close();
+
+        // Delete the driver from the database
+        $delete = $conn->prepare("DELETE FROM driver WHERE DriverID = ?");
+        $delete->bind_param("i", $driverID);
+
+        if ($delete->execute()) {
+
+            // Refresh the page to update the drivers list
+            header("Location: drivers_control.php");
+            exit();
+
+        } else {
+            $successMessage = "Driver could not be deleted.";
+        }
+
+        $delete->close();
     }
+
+    $checkActive->close();
 }
 
 // assign request to driver
@@ -232,13 +251,13 @@ while ($row = $requestsResult->fetch_assoc()) {
                   <p>No pending requests</p>
                 <?php endif; ?>
 
-              <?php endif; ?>
+                <!-- delete driver -->
+                <form method="post">
+                  <input type="hidden" name="driver_id" value="<?php echo $driver["DriverID"]; ?>">
+                  <button type="submit" name="delete_driver" class="delete-btn" onclick="return confirm('Are you sure?')">Delete</button>
+                </form>
 
-              <!-- delete driver -->
-              <form method="post">
-                <input type="hidden" name="driver_id" value="<?php echo $driver["DriverID"]; ?>">
-                <button type="submit" name="delete_driver" class="delete-btn" onclick="return confirm('Are you sure?')">Delete</button>
-              </form>
+              <?php endif; ?>
 
             </div>
 
