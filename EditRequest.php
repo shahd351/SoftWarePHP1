@@ -1,4 +1,3 @@
-
 <?php
 // edit_request.php - Allows editing only once, with Riyadh location validation
 error_reporting(E_ALL);
@@ -56,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pickupLocation = trim($_POST['pickupLocation']);
     $dropoffLocation= trim($_POST['dropoffLocation']);
     $securityCode   = trim($_POST['securityCode']);
-    
+   
     // --- VALIDATION: Check that both locations contain "Riyadh" (case-insensitive) ---
     if (stripos($pickupLocation, 'Riyadh') === false) {
         echo "<script>alert('Error: Pickup location must be within Riyadh (include the word \"Riyadh\").'); window.history.back();</script>";
@@ -66,15 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<script>alert('Error: Drop-off location must be within Riyadh (include the word \"Riyadh\").'); window.history.back();</script>";
         exit;
     }
-    
+   
     $prices = ['jewelry'=>200, 'cash'=>150, 'electronics'=>120];
     $servicePrice = $prices[$itemType] ?? 120;
-    
-    $update = $conn->prepare("UPDATE request 
-                              SET ItemType=?, ItemValueRange=?, PickUpLocation=?, DropOffLocation=?, SecurityCode=?, ServicePrice=?, is_edited=1 
+   
+    $update = $conn->prepare("UPDATE request
+                              SET ItemType=?, ItemValueRange=?, PickUpLocation=?, DropOffLocation=?, SecurityCode=?, ServicePrice=?, is_edited=1
                               WHERE RequestID=? AND UserID=?");
     $update->bind_param("sssssiii", $itemType, $itemValueRange, $pickupLocation, $dropoffLocation, $securityCode, $servicePrice, $requestID, $userID);
-    
+   
     if ($update->execute()) {
         echo "<script>alert('✅ Changes saved successfully. You cannot edit this request again.'); window.location.href='RequestDetails.php?requestID=$requestID';</script>";
         exit;
@@ -85,6 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // If everything is fine, display the edit form
+// Prepare current item type for case-insensitive comparison
+$currentItemType = strtolower(trim($request['ItemType']));
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="ltr">
@@ -104,9 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
     <div class="container">
         <div class="logo-container">
-
-
-<img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
+            <img src="images/thamen.bmp" alt="Thamean Logo" class="logoSmall">
         </div>
         <h2 class="Home-title">Edit Request</h2>
         <div class="divider"></div>
@@ -115,9 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="input-group">
                 <label>Item Type :</label>
                 <select name="itemType" id="itemType" class="input-field" onchange="updatePrice()" required>
-                    <option value="jewelry" <?= $request['ItemType'] == 'Jewelry' ? 'selected' : '' ?>>Jewelry</option>
-                    <option value="cash" <?= $request['ItemType'] == 'Cash' ? 'selected' : '' ?>>Cash</option>
-                    <option value="electronics" <?= $request['ItemType'] == 'Electronics' ? 'selected' : '' ?>>Electronics</option>
+                    <option value="jewelry" <?= $currentItemType == 'jewelry' ? 'selected' : '' ?>>Jewelry</option>
+                    <option value="cash" <?= $currentItemType == 'cash' ? 'selected' : '' ?>>Cash</option>
+                    <option value="electronics" <?= $currentItemType == 'electronics' ? 'selected' : '' ?>>Electronics</option>
                 </select>
             </div>
             <div class="input-group">
